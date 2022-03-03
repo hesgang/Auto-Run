@@ -135,7 +135,6 @@ def run_clean():
         write_log(now_path, now_data, old_data)
 
 
-
 def main():
     toaster.show_toast("Run Cleaner",
                        "开始清理!",
@@ -153,7 +152,6 @@ def main():
     # 等待线程通知完成
     while toaster.notification_active():
         time.sleep(0.1)
-
 
 
 if __name__ == '__main__':
