@@ -7,29 +7,51 @@ import time
 import datetime
 import configparser  # 读取配置文件的包
 import re
+import send2trash
+from win10toast import ToastNotifier
 
+toaster = ToastNotifier()
 config = configparser.ConfigParser()
-logging.basicConfig(level='DEBUG')
+logging.basicConfig(level='INFO')
+
 
 def read_ini(inikey):
-    config.read(os.path.join(os.getcwd(), 'path_time.ini'), encoding="utf-8")
-    convaluse = config.options(inikey)  # 获取option
-    return convaluse
+    try:
+        path = os.path.join(os.getcwd(), 'path_time.ini')
+        config.read(path, encoding="utf-8")
+        logging.debug(path)
+        convaluse = config.options(inikey)  # 获取option
+        return convaluse
+    except BaseException:
+        toaster.show_toast("Run Cleaner",
+                           "没有找到配置文件",
+                           icon_path=None,
+                           duration=5)
+        while toaster.notification_active():
+            time.sleep(0.1)
+        raise RuntimeError('没有配置文件')
 
 
-# 写入Del_log文件
-def write_log(path, name, ty, con):
-    with open(os.path.join(path, 'Del_log.txt'), 'a') as f:
-        if ty == 'file':
-            f.write(con + '   ' + 'file:  ' + name)
-            f.write('\n')
-        else:
-            f.write(con + '   ' + 'folder:  ' + name)
-            f.write('\n')
-        f.close
+def Caltime1(date1, date2):
+    date1 = time.strptime(date1, "%Y-%m-%d")
+    date1 = datetime.datetime(date1[0], date1[1], date1[2])
+    return (date2 - date1).days
 
 
-# 判断文件类型
+# 计算两个日期相差天数，自定义函数名，和两个日期的变量名。
+def Caltime(date1, date2):
+    # %Y-%m-%d为日期格式，其中的-可以用其他代替或者不写，但是要统一，同理后面的时分秒也一样；可以只计算日期，不计算时间。
+    date1 = time.strptime(date1, "%Y-%m-%d %H:%M:%S")
+    date1 = datetime.datetime(date1[0], date1[1], date1[2])
+    return (date2 - date1).days
+
+
+# 获取文件的修改时间
+def get_FileModifyTime(filepath):
+    t = os.path.getmtime(filepath)
+    return TimeStampToTime(t)  # type str
+
+
 def file_or_folder(path):
     if os.path.isfile(path):
         return 'file'  # 文件
@@ -43,82 +65,95 @@ def TimeStampToTime(timestamp):
     return time.strftime('%Y-%m-%d %H:%M:%S', timeStruct)
 
 
-# 计算两个日期相差天数，自定义函数名，和两个日期的变量名。
-def Caltime(date1, date2):
-    # %Y-%m-%d为日期格式，其中的-可以用其他代替或者不写，但是要统一，同理后面的时分秒也一样；可以只计算日期，不计算时间。
-    date1 = time.strptime(date1, "%Y-%m-%d %H:%M:%S")
-    date1 = datetime.datetime(date1[0], date1[1], date1[2])
-    return (date2 - date1).days
-
-
-def Caltime1(date1, date2):
-    date1 = time.strptime(date1, "%Y-%m-%d")
-    date1 = datetime.datetime(date1[0], date1[1], date1[2])
-    return (date2 - date1).days
-
-
-# 获取文件的修改时间
-def get_FileModifyTime(filepath):
-    t = os.path.getmtime(filepath)
-    return TimeStampToTime(t)  # type str
-
-
-# 删除文件
-def file_del(path, name, t):
-    file = os.path.join(path, name)
-    M_time = get_FileModifyTime(file)
-    N_time = datetime.datetime.now()
-    if Caltime(M_time, N_time) > int(t) and name != 'desktop.ini' and name != 'Del_log.txt':
-        if file_or_folder(file) == 'file':
-            try:
-                os.remove(file)
-                write_log(path, name, 'file', '√')
-            except BaseException:
-                write_log(path, name, 'file', '×')
-
-        else:
-            try:
-                # os.system("rd /q /s %s" % file)
-                shutil.rmtree(file)
-                write_log(path, name, 'folder', '√')
-            except BaseException:
-                write_log(path, name, 'folder', '×')
-
-
-def log_init(path):
+def get_old_data(path):
     file = os.path.join(path, 'Del_log.txt')
-    fr = open(file, mode="a+", encoding='gbk')
-    fr.write('\n        *****      ' + str(time.strftime("%Y-%m-%d")) + '     *****\n')
-    fr.seek(0)
-    n_text = fr.readlines()
-    for i in range(0, len(n_text)):
-        tt = re.findall('[0-9]{4}-[0-9]{2}-[0-9]{2}', n_text[i])
-        if tt != [] and Caltime1(tt[0], datetime.datetime.now()) < 30:
-            te = n_text[i:]
-            logging.debug(te)
-            break
-    fr.close()
-
-    fd = open(file, mode="w")
-    fd.writelines(te)
-    fd.close()
-
-
-def deal(path, name, t):
-    log_init(path)
-    for i in name:
-        file_del(path, i, t)
+    old_data_ = []
+    try:
+        fr = open(file, mode="r+", encoding='gbk')
+        for i in fr:
+            tt = re.findall('[0-9]{4}-[0-9]{2}-[0-9]{2}', i)
+            # print(tt)
+            if tt != [] and Caltime1(tt[0], datetime.datetime.now()) > 30:
+                # print(tt)
+                break
+            old_data_.append(i)
+        fr.close()
+    except FileNotFoundError:
+        print("File is not found. Recreat the log file")
+        fr = open(file, mode="a+", encoding='gbk').close()
+    except PermissionError:
+        print("You don't have permission to access this file.")
+    return old_data_
 
 
-def main():
+def get_data_del(path, t):
+    now_data_ = []
+    file_name = os.listdir(path)
+    n_time = datetime.datetime.now()
+    for name in file_name:
+        file = os.path.join(path, name)
+        m_time = get_FileModifyTime(file)
+        if Caltime(m_time, n_time) > int(t) and name != 'desktop.ini' and name != 'Del_log.txt':
+            if file_or_folder(file) == 'file':
+                try:
+                    # os.remove(file)
+                    send2trash.send2trash(file)
+                    now_data_.append('√' + '   ' + 'file:  ' + name + '\n')
+                except BaseException:
+                    now_data_.append('×' + '   ' + 'file:  ' + name + '\n')
+
+            else:
+                try:
+                    # os.system("rd /q /s %s" % file)
+                    # shutil.rmtree(file)
+                    send2trash.send2trash(file)
+                    now_data_.append('√' + '   ' + 'folder:  ' + name + '\n')
+                except BaseException:
+                    now_data_.append('×' + '   ' + 'folder:  ' + name + '\n')
+    return now_data_
+
+
+def write_log(path, now_data_, old_data_):
+    with open(os.path.join(path, 'Del_log.txt'), 'w+') as f:
+        f.seek(0)
+        f.write('      *****      ' + str(time.strftime("%Y-%m-%d")) + '     *****\n')
+        for i in now_data_:
+            f.write(i)
+        for j in old_data_:
+            f.write(j)
+        f.close
+
+
+def run_clean():
     p = read_ini("path")
     t = read_ini("time")
     for i, j in zip(p, t):
         now_path = config.get("path", i)
         now_time = config.get("time", j)
-        file_name = os.listdir(now_path)
-        print(now_time)
-        # deal(path=now_path, name=file_name, t=now_time)
+        old_data = get_old_data(now_path)
+        now_data = get_data_del(now_path, now_time)
+        write_log(now_path, now_data, old_data)
+
+
+
+def main():
+    toaster.show_toast("Run Cleaner",
+                       "开始清理!",
+                       icon_path=None,
+                       duration=5,
+                       threaded=True)
+    run_clean()
+    time.sleep(7)
+    toaster.show_toast("清理完成！",
+                       "ok",
+                       icon_path=None,
+                       duration=5,
+                       threaded=True)
+
+    # 等待线程通知完成
+    while toaster.notification_active():
+        time.sleep(0.1)
+
 
 
 if __name__ == '__main__':
