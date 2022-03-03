@@ -4,7 +4,7 @@ on:
 # push:
   schedule:
     # 每天北京时间9点跑
-    - cron:  '0 1 1 * *'
+    - cron:  '4 6 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
