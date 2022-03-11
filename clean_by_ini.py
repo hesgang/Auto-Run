@@ -12,7 +12,11 @@ from win10toast import ToastNotifier
 
 toaster = ToastNotifier()
 config = configparser.ConfigParser()
-logging.basicConfig(level='INFO')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(filename)s %(levelname)s %(message)s',
+                    datefmt='%a %d %b %Y %H:%M:%S',
+                    filename='my.log',
+                    filemode='w')
 
 
 def read_ini(inikey):
@@ -23,6 +27,7 @@ def read_ini(inikey):
         convaluse = config.options(inikey)  # 获取option
         return convaluse
     except BaseException:
+        logging.error('没有找到配置文件!!')
         toaster.show_toast("Run Cleaner",
                            "没有找到配置文件",
                            icon_path=None,
@@ -79,9 +84,11 @@ def get_old_data(path):
             old_data_.append(i)
         fr.close()
     except FileNotFoundError:
-        print("File is not found. Recreat the log file")
+        logging.error("File is not found. Recreat the log file.")
+        print("File is not found. Recreat the log file.")
         fr = open(file, mode="a+", encoding='gbk').close()
     except PermissionError:
+        logging.error("File is not found. Recreat the log file.")
         print("You don't have permission to access this file.")
     return old_data_
 
@@ -130,6 +137,9 @@ def run_clean():
     for i, j in zip(p, t):
         now_path = config.get("path", i)
         now_time = config.get("time", j)
+        if not os.path.exists(now_path):
+            logging.error("path is not exist: " + now_path)
+            continue
         old_data = get_old_data(now_path)
         now_data = get_data_del(now_path, now_time)
         write_log(now_path, now_data, old_data)
