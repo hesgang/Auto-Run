@@ -7,16 +7,25 @@ import time
 import datetime
 import configparser  # 读取配置文件的包
 import re
-import send2trash
-from win10toast import ToastNotifier
 
-toaster = ToastNotifier()
 config = configparser.ConfigParser()
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s %(levelname)s %(message)s',
                     datefmt='%a %d %b %Y %H:%M:%S',
                     filename='my.log',
                     filemode='w')
+
+try:
+    import send2trash
+    from win10toast import ToastNotifier
+
+
+    logging.info('获取扩展库成功！开始执行主程序。')
+except Exception as e:
+    logging.error('获取扩展库失败，退出执行！请检查环境配置是否正常！！')
+    exit(-1)
+
+toaster = ToastNotifier()
 
 
 def read_ini(inikey):
