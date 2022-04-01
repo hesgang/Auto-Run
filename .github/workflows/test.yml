@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: test
 
 # Controls when the workflow will run
 on:
@@ -17,23 +17,13 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      #- uses: actions/checkout@v3
-
-      # Runs a single command using the runners shell
       - name: Run a one-line script
-      - uses:hesgang/UpdateAliyunFC@main
+        uses: hesgang/UpdateAliyunFC@main
         with:
-           access_key_id: SK
-           access_key_secret: SK
-           account_ID: aid
-           server_name: helper
-           function_name: test
-           region: aa
+          access_key_id: SK
+          access_key_secret: SK
+          account_ID: aid
+          server_name: helper
+          function_name: test
+          region: aa
            
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
