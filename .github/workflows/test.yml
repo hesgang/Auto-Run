@@ -20,10 +20,10 @@ jobs:
       - name: Run a one-line script
         uses: hesgang/UpdateAliyunFC@main
         with:
-          access_key_id: SK
-          access_key_secret: SK
-          account_ID: aid
-          server_name: helper
-          function_name: test
-          region: aa
+          access_key_id: "SK"
+          access_key_secret: "SK"
+          account_ID: "acid"
+          server_name: "helper"
+          function_name: "test"
+          region: "aa"
            
