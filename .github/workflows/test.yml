@@ -23,7 +23,7 @@ jobs:
           access_key_id: "LTAI5tDkX9mJC4JfUoqqKmfF"
           access_key_secret: "4K3Y1tk0ZbSWMX7hX0c8x45hW2U6G6"
           account_ID: "1371505006329876"
-          server_name: "helper"
+          server_name: "hepler"
           function_name: "test"
           region: "cn-beijing"
            
