@@ -25,5 +25,6 @@ jobs:
           account_ID: ${{ secrets.ACCOUNT_ID }}
           server_name: ${{ secrets.SERVER_NAME }}
           function_name: ${{ secrets.FUNCTION_NAME }}
-          region: ${{ secrets.REGION }}
+          region: cn-beijing
+          repo_name: hesgang/Auto-Run
            
