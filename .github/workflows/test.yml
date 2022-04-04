@@ -27,4 +27,5 @@ jobs:
           function_name: ${{ secrets.FUNCTION_NAME }}
           region: cn-beijing
           repo_name: hesgang/Auto-Run
+          token: ${{ secrets.TOKEN }}
            
