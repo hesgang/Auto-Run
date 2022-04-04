@@ -20,7 +20,7 @@ jobs:
       - name: Run a one-line script
         uses: hesgang/UpdateAliyunFC@main
         with:
-          access_key_id: ${{ secrets.ACCESS_KEY }}
+          access_key_id: ${{ secrets.ACCESS_KEY_ID }}
           access_key_secret: ${{ secrets.ACCESS_KEY_SECRET }}
           account_ID: ${{ secrets.ACCOUNT_ID }}
           server_name: ${{ secrets.SERVER_NAME }}
