@@ -11,6 +11,9 @@ args = parser.parse_args()
 comm_pkgs = f'''
 send2trash
 win10toast
+zxing
+alibabacloud_imm20170906==1.23.8
+oss2
 '''
 
 # git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
