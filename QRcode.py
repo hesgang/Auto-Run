@@ -52,7 +52,6 @@ def run_local():
 
 
 if __name__ == '__main__':
-    os.chdir(r'D:\code\python\Auto Run')
     img_path = r'\cache\qrcode.png'
     img = get_img()
     AK = read_cfg()
@@ -62,7 +61,8 @@ if __name__ == '__main__':
         print(res)
     else:
         res = QR.qrcode(img)
-        if res['codes_result'][0]['text']:
+        print(res['codes_result'])
+        if res['codes_result']:
             print(res['codes_result'][0]['text'][0])
         else:
             print('ERROR:请检查二维码是否正确')
