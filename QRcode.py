@@ -61,7 +61,6 @@ if __name__ == '__main__':
         print(res)
     else:
         res = QR.qrcode(img)
-        print(res['codes_result'])
         if res['codes_result']:
             print(res['codes_result'][0]['text'][0])
         else:
