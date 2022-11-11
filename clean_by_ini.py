@@ -7,23 +7,31 @@ import time
 import datetime
 import configparser  # 读取配置文件的包
 import re
-
+url = r'https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/'  #清华镜像网站
 config = configparser.ConfigParser()
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s %(levelname)s %(message)s',
                     datefmt='%a %d %b %Y %H:%M:%S',
                     filename='my.log',
                     filemode='w')
-
+libs = ['send2trash', 'win10toast']
 try:
     import send2trash
     from win10toast import ToastNotifier
-
-
     logging.info('获取扩展库成功！开始执行主程序。')
 except Exception as e:
-    logging.error('获取扩展库失败，退出执行！请检查环境配置是否正常！！')
-    exit(-1)
+    logging.error('获取扩展库失败，尝试下载库。')
+    try:
+        for lib in libs:
+            logging.info("Start install {0}".format(lib))
+            os.system('pip install %s -i %s' % (lib, url))
+            logging.info('{0} install successful'.format(lib))
+        logging.info('All install successful ')
+        import send2trash
+        from win10toast import ToastNotifier
+    except Exception as e:
+        logging.error('程序错误：{}'.format(e))
+        exit(-1)
 
 toaster = ToastNotifier()
 
