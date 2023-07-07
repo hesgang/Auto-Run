@@ -9,8 +9,8 @@ import configparser  # 读取配置文件的包
 import re
 url = r'https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/'  #清华镜像网站
 config = configparser.ConfigParser()
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(filename)s %(levelname)s %(message)s',
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(levelname)s %(message)s',
                     datefmt='%a %d %b %Y %H:%M:%S',
                     filename='my.log',
                     filemode='w')
@@ -88,6 +88,8 @@ def TimeStampToTime(timestamp):
 
 
 def get_old_data(path):
+    # 处理Del_log.txt文件，默认保存50条删除记录
+    save_num = 50
     file = os.path.join(path, 'Del_log.txt')
     old_data_ = []
     try:
@@ -95,7 +97,7 @@ def get_old_data(path):
         for i in fr:
             tt = re.findall('[0-9]{4}-[0-9]{2}-[0-9]{2}', i)
             # print(tt)
-            if tt != [] and Caltime1(tt[0], datetime.datetime.now()) > 30:
+            if tt != [] and Caltime1(tt[0], datetime.datetime.now()) > save_num:
                 # print(tt)
                 break
             old_data_.append(i)
@@ -121,7 +123,7 @@ def get_data_del(path, t):
             if file_or_folder(file) == 'file':
                 try:
                     # os.remove(file)
-                    send2trash.send2trash(file)
+                    # send2trash.send2trash(file)
                     now_data_.append('√' + '   ' + 'file:  ' + name + '\n')
                 except BaseException:
                     now_data_.append('×' + '   ' + 'file:  ' + name + '\n')
@@ -130,7 +132,7 @@ def get_data_del(path, t):
                 try:
                     # os.system("rd /q /s %s" % file)
                     # shutil.rmtree(file)
-                    send2trash.send2trash(file)
+                    # send2trash.send2trash(file)
                     now_data_.append('√' + '   ' + 'folder:  ' + name + '\n')
                 except BaseException:
                     now_data_.append('×' + '   ' + 'folder:  ' + name + '\n')
@@ -149,20 +151,26 @@ def write_log(path, now_data_, old_data_):
 
 
 def run_clean():
+    # 获取删除路径配置信息
     p = read_ini("path")
     t = read_ini("time")
+    # 处理删除路径配置信息
     for i, j in zip(p, t):
         now_path = config.get("path", i)
         now_time = config.get("time", j)
-        if not os.path.exists(now_path):
+        if not os.path.exists(now_path):  # 不存在的路径跳过
             logging.error("path is not exist: " + now_path)
             continue
-        old_data = get_old_data(now_path)
-        now_data = get_data_del(now_path, now_time)
-        write_log(now_path, now_data, old_data)
+        else:
+            logging.debug("running path %s" % now_path)
+        old_data = get_old_data(now_path)  # 获取需要保存的旧日志，默认保存旧日志50条
+        now_data = get_data_del(now_path, now_time)  # 获取删除的日志
+        write_log(now_path, now_data, old_data)  # 写入新的日志
 
 
 def main():
+    logging.info(TimeStampToTime(time.time()))
+    logging.info("************************程序开始************************")
     toaster.show_toast("Run Cleaner",
                        "开始清理!",
                        icon_path=None,
@@ -179,6 +187,7 @@ def main():
     # 等待线程通知完成
     while toaster.notification_active():
         time.sleep(0.1)
+    logging.info("************************结束开始************************")
 
 
 if __name__ == '__main__':
